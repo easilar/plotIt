@@ -22,9 +22,11 @@ configuration:
   yields-table-numerical-precision-yields: 2
   generated-events-histogram: 'hcounter'
   generated-events-bin: 2
+  #syst-only: true
 
 files: 
-  include: ['files_2016pre.yml']
+  include: ['files.yml']
+  #include: ['files_fake.yml']
 
 systematics:
   - tt_xsec: {type: const, value: 1.044, on: 'TTTo'}
@@ -46,9 +48,14 @@ systematics:
   - jesAbsolute_2016
   - jesBBEC1
   - jesBBEC1_2016
-  - jesFlavorQCD
+  #- jesFlavorQCD
+  - jesFlavorPureGluon
+  - jesFlavorPureQuark
+  - jesFlavorPureCharm
+  - jesFlavorPureBottom
   - jesRelativeBal
   - jesRelativeSample_2016
+  - metUnclust
   - btaghf
   - btaglf
   - btaghfstats1
@@ -63,6 +70,8 @@ systematics:
   - muid
   - muiso
   - mutrg
+  - muhighpt
+  - muonhighscale
   #- tauidjet
   - tauFFstat
   - tauFFsyst
@@ -97,9 +106,12 @@ systematics:
   - tune: {type: shape, on: 'TTTo'}
 
 plots:
-  include: ['histos_control.yml', 'histos_reco.yml', 'histos_yield.yml']
+  #include: ['histos_yield.yml', 'histos_control.yml', 'histos_reco.yml']
+  #include: ['histos_yield.yml']
+  include: ['histos_dnn.yml']
   #include: ['histos_FFcalc.yml']
   #include: ['histos_FFapply.yml', 'histos_yield_S5.yml']
+  #include: ['histos_yield_S5.yml']
 
 legend:
   #position: [0.18, 0.70, 0.96, 0.88]

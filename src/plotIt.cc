@@ -536,7 +536,13 @@ namespace plotIt {
         if (!CommandLineCfg::get().dyincl and (it->first.as<std::string>()).find("DYJetsToLL_M50_amc") != std::string::npos) continue;
         else if (CommandLineCfg::get().dyincl and (it->first.as<std::string>()).find("DYJetsToLL_M50_HT") != std::string::npos) continue;
 
-        if(!CommandLineCfg::get().allSig and (it->first.as<std::string>()).find("_LFV_") != std::string::npos and (it->first.as<std::string>()).find("Vector") == std::string::npos ) continue;
+        std::string fname_ = it->first.as<std::string>();
+        std::transform(fname_.begin(), fname_.end(), fname_.begin(), [](unsigned char c){ return std::tolower(c); });
+        bool isLfvSignal = fname_.find("_lfv_") != std::string::npos;
+
+        if(!CommandLineCfg::get().allSig and isLfvSignal and (it->first.as<std::string>()).find("Vector") == std::string::npos ) continue;
+        // This option must be used with allSig
+        if(CommandLineCfg::get().selectSig.length() > 0 and isLfvSignal and (it->first.as<std::string>()).find(CommandLineCfg::get().selectSig) == std::string::npos ) continue;
 
         if(CommandLineCfg::get().binned and (((it->first.as<std::string>()).find("ttbarsignal") != std::string::npos
                 or (it->first.as<std::string>()).find("ttbartwbb4l") != std::string::npos
@@ -1121,8 +1127,8 @@ namespace plotIt {
     if (plot.log_y)
       c.SetLogy();
 
-    if (plot.log_x)
-      c.SetLogx();
+    //if (plot.log_x)
+    //  c.SetLogx();
 
     Position legend_position = plot.legend_position;
 
@@ -1596,8 +1602,8 @@ namespace plotIt {
             }
 
             // Space
-            if (!mc_processes.empty() || has_data)
-                latexString << R"( & \\)" << std::endl;
+            //if (!mc_processes.empty() || has_data)
+            //    latexString << R"( & \\)" << std::endl;
         }
 
         // Then MC samples
@@ -1626,9 +1632,9 @@ namespace plotIt {
             }
 
             // Space
-            latexString << R"( & \\ \hline)" << std::endl;
-            //latexString << R"(Total {\scriptsize $\pm$ (stat.) $\pm$ (syst.)} & )";
-            latexString << R"(Total {\scriptsize $\pm$ (stat.)} & )";
+            //latexString << R"( & \\ \hline)" << std::endl;
+            //latexString << R"(Total {\scriptsize $\pm$ (stat) $\pm$ (syst)} & )";
+            latexString << R"(Total {\scriptsize $\pm$ (stat)} & )";
 
             for (const auto& c: categories) {
                 //latexString << "$" << mc_total[c.second] << R"({\scriptstyle\ \pm\ )" << std::sqrt(mc_total_sqerrs[c.second]) << R"(\ \pm\ )" << std::sqrt(total_systematics_squared[c.second][MC]) << "}$ & ";
@@ -1642,7 +1648,7 @@ namespace plotIt {
         // Print data
         if (has_data) {
             latexString << R"(\hline)" << std::endl;
-            //latexString << R"(Data {\scriptsize $\pm$ (stat.)} & )";
+            //latexString << R"(Data {\scriptsize $\pm$ (stat)} & )";
             latexString << R"(Data & )";
             latexString << std::setprecision(0);
 
@@ -1663,7 +1669,7 @@ namespace plotIt {
         // And finally data / MC
         if (!mc_processes.empty() && has_data) {
             latexString << R"(\hline)" << std::endl;
-            latexString << R"(Data / prediction & )";
+            latexString << R"(Data / Background prediction & )";
             latexString << std::setprecision(m_config.yields_table_num_prec_ratio);
 
             for (const auto& c: categories) {
@@ -2055,7 +2061,7 @@ namespace plotIt {
       m_config.book_keeping_file.reset(TFile::Open(outputName.native().c_str(), "recreate"));
     }
 
-    constexpr std::size_t plots_per_chunk = 150;
+    constexpr std::size_t plots_per_chunk = 20;
 
     auto plots_begin = plots.begin();
     auto plots_end = plots.begin();
@@ -2371,7 +2377,7 @@ int main(int argc, char** argv) {
 
     TCLAP::SwitchArg yieldsArg("y", "yields", "Produce LaTeX table of yields", cmd, false);
 
-    TCLAP::SwitchArg systematicsArg("s", "systematics", "Produce LaTeX table of systematics", cmd, false);
+    TCLAP::SwitchArg systematicsArg("s", "systematics", "Produce LaTeX table of systematics", cmd , false);
 
     TCLAP::SwitchArg plotsArg("p", "plots", "Do not produce the plots - can be useful if only the yields table is needed", cmd, false);
 
@@ -2386,6 +2392,8 @@ int main(int argc, char** argv) {
     TCLAP::SwitchArg dyArg("d", "dyincl", "Process with DY inclusive sample (DYJetsToLL_M50_amc)", cmd, false);
 
     TCLAP::SwitchArg allSigArg("a", "allSig", "plot only vector signal for LFV, default for ", cmd, false);
+
+    TCLAP::ValueArg<std::string> selectSigArg("", "selectSig", "plot only select signal for LFV", false, "", "string", cmd);
 
     TCLAP::SwitchArg desytopArg("t", "desytop", "Switch for DESY top framework", cmd, false);
 
@@ -2424,6 +2432,7 @@ int main(int argc, char** argv) {
     CommandLineCfg::get().do_qcd = qcdArg.getValue();
     CommandLineCfg::get().dyincl = dyArg.getValue();
     CommandLineCfg::get().allSig = allSigArg.getValue();
+    CommandLineCfg::get().selectSig = selectSigArg.getValue();
     CommandLineCfg::get().desytop = desytopArg.getValue();
     CommandLineCfg::get().binned = binnedArg.getValue();
 
